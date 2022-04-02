@@ -7,13 +7,16 @@ using InPr.Domain.Database.Models;
 
 namespace InPr.Domain.Database
 {
-    public class AppDBContext: DbContext
+    public class NewsDBContext: DbContext
     {
-    public DbSet<User> Users => Set<User>();
-    public AppDBContext()
+    
+    public DbSet<Article> Articles = null!;
+    public DbSet<User> Users => null!;
+    public DbSet<Role> Roles => null!;
+
+    public NewsDBContext()
     {
-        Database.EnsureDeleted();
-        Database.EnsureCreated();
+        Database.EnsureCreatedAsync();
     }
  
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

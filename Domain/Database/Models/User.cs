@@ -15,13 +15,13 @@ namespace InPr.Domain.Database.Models
         public string       Name            {get;set;}
 
         public string       Email           {get;set;}
-
+        [Column("Verified_Email")]
         public bool         Verified_Email  {get;set;}
 
         public string       Age             {get;set;}
 
         public string       Password        {get;set;}
-
+        
         public int          Role_id         {get;set;}
 
         

@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 namespace InPr.Domain.Database.Models
 {
-    public class News
+    public class Article
     {
         [Key]
         [Column("id")]
@@ -19,6 +19,8 @@ namespace InPr.Domain.Database.Models
         public DateOnly DateCreated     {get;set;}
 
         public string   Autor           {get;set;}
+        [ForeignKey("Autor")]
+        public User     User            {get;set;}
 
 
     }

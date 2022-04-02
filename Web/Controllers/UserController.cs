@@ -6,5 +6,4 @@ namespace InPr.Web.Controllers;
 public class UserController : Controller
 {
     
-    
 }

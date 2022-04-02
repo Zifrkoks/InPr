@@ -6,11 +6,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InPr.Web.ViewModels
 {
-    public class User
+    public class UserModel
     {
         [Required]
         [Range(3, 32, ErrorMessage = "недопустимый никнейм")]
-        public string Name{get;set;}
+        public string Name {get;set;}
         [Required]
         public string Email{get;set;}
         [Range(14, 110, ErrorMessage = "Недопустимый возраст")]

@@ -9,6 +9,7 @@ namespace InPr.Web.ViewModels
     public class User
     {
         [Required]
+        [Range(3, 32, ErrorMessage = "недопустимый никнейм")]
         public string Name{get;set;}
         [Required]
         public string Email{get;set;}

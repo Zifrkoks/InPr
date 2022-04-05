@@ -7,14 +7,14 @@ using InPr.Domain.Database.Models;
 
 namespace InPr.Domain.Database
 {
-    public class NewsDBContext: DbContext
+    public class NewsDbContext: DbContext
     {
     
     public DbSet<Article> Articles = null!;
     public DbSet<User> Users => null!;
     public DbSet<Role> Roles => null!;
 
-    public NewsDBContext()
+    public NewsDbContext()
     {
         Database.EnsureCreatedAsync();
     }

@@ -12,17 +12,23 @@ namespace InPr.Domain.Database.Models
     {
         [Key]
         [Column("id")]
-        public string       Name            {get;set;}
+        public int              id              {get;set;}
+        public string           Name            {get;set;}
 
-        public string       Email           {get;set;}
+        public string           Email           {get;set;}
         [Column("Verified_Email")]
-        public bool         Verified_Email  {get;set;}
+        public bool             Verified_Email  {get;set;}
 
-        public string       Age             {get;set;}
+        public string           Age             {get;set;}
 
-        public string       Password        {get;set;}
+        public string           Password        {get;set;}
         
-        public int          Role_id         {get;set;}
+        public int              RoleId          {get;set;}
+
+        [ForeignKey("RoleId")]
+        public Role             Role            {get;set;}
+
+        public List<Article>    Articles        {get;set;}
 
         
     }

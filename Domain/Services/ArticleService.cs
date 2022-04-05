@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using InPr.Web.ViewModels;
 
-namespace InPr.Domain
+namespace InPr.Domain.Services
 {
-    public class RepositoriesService
+    public class ArticleService
     {
-        
+    
     }
 }

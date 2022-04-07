@@ -26,7 +26,7 @@ namespace InPr.Domain.Database.Models
         public int              RoleId          {get;set;}
 
         [ForeignKey("RoleId")]
-        public Role             Role            {get;set;}
+        public Role             UserRole        {get;set;}
 
         public List<Article>    Articles        {get;set;}
 

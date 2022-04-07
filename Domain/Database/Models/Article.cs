@@ -19,9 +19,9 @@ namespace InPr.Domain.Database.Models
         [Column("Date_Created")]
 
 
-        public string   AutorId         {get;set;}
+        public int   AuthorId         {get;set;}
         [ForeignKey("AutorId")]
-        public User     Autor           {get;set;}
+        public User     Author           {get;set;}
         [Required]
         public DateTime DateTimeCreated {get;set;}
 

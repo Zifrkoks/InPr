@@ -18,12 +18,11 @@ namespace InPr.Domain.Repositories
             db = context;
         }
         
-        public async Task<bool> Create(Article article, User user){
+        public async Task<bool> Create(Article article){
             Article NewArticle = await db.Articles.FirstOrDefaultAsync( ar => ar.Title == article.Title);
             if(NewArticle == null)
             {
-                NewArticle = new Article {Title = article.Title, Text = article.Text, Autor = user, DateTimeCreated = DateTime.Now, Readers = 0};
-                await db.Articles.AddAsync(NewArticle);
+                await db.Articles.AddAsync(article);
                 await db.SaveChangesAsync();
                 return true;
             }
@@ -34,6 +33,10 @@ namespace InPr.Domain.Repositories
         public async Task<Article> Read(int Id){
             Article article = await db.Articles.FindAsync(Id);
             return article;
+        }
+        public async Task<List<Article>> ReadList(int amount, int PageNum){
+            List<Article> listarticles = await Task.Run(()=>db.Articles.AsParallel().Skip(amount*PageNum).Take(amount).ToList());
+            return listarticles;
         } 
 
         public async Task<List<Article>> Read(string Title)

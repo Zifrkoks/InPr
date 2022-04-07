@@ -17,17 +17,27 @@ namespace InPr.Domain.Repositories
         {
             db = context;
         }
+        public async Task<Role> ReadRole(int id){
+            Role role = await db.Roles.FirstOrDefaultAsync((r)=> r.id == id);
+            return role;
+        }
+        public async Task<Role> ReadRole(string name){
+            Role role = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == name);
+            return role;
+        }
+        
+
         public async Task<bool> Create(User userNodel){
 
             User user = await db.Users.FirstOrDefaultAsync(u => u.Name == userNodel.Name && u.Email == userNodel.Email);
             if (user == null)
             {
-                user = new User{Name = userNodel.Name,Email = userNodel.Email,Password = userNodel.Password, Age =  userNodel.Age, Role = userNodel.Role};
+                user = new User{Name = userNodel.Name,Email = userNodel.Email,Password = userNodel.Password, Age =  userNodel.Age, UserRole = userNodel.UserRole};
             user.Name = userNodel.Name;
             user.Email = userNodel.Email;
             user.Password = userNodel.Password;
             user.Age = userNodel.Age;
-            user.Role = userNodel.Role;
+            user.UserRole = userNodel.UserRole;
             await db.Users.AddAsync(user);
             await db.SaveChangesAsync();
             return true;

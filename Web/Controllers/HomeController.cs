@@ -9,12 +9,12 @@ namespace InPr.Web.Controllers
     [Controller]
     public class HomeController : Controller
     {
-    [Route("")]
+    [Route("/")]
     [Route("/index")]
     [Route("/Home/index")]
     [HttpGet]
     public IActionResult Index(){
-        return View();
+        
     }
     
     }

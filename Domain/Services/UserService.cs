@@ -16,14 +16,20 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 namespace InPr.Domain.Services
 {
     
-    public class AuthService
+    public class UserService
     {
-        UserRepository users;
+        public UserRepository users{get;}
         IConfiguration appConfig;
-        AuthService(UserRepository users, IConfiguration appConfig){
+        UserService(UserRepository users, IConfiguration appConfig){
             this.users = users;
             this.appConfig = appConfig;
         }
+        public async Task<bool> UpdatePass(AuthModel model){
+            User user = await users.Read(model.Name);
+            user.Password = model.Password;
+            await users.UpdatePass(user);
+            return true;
+        } 
         public async Task<string> Login(AuthModel auth){
             User user = await users.Read(auth);
             if(user != null)
@@ -65,13 +71,15 @@ namespace InPr.Domain.Services
             if(await users.Create(user) == true){
                 var claims = new List<Claim> { 
                     new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, user.UserRole?.Name)
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, user.UserRole?.Name),
+                    new Claim("id",user.id.ToString())
+
                 };
                     var jwt = new JwtSecurityToken(
                     issuer: appConfig["JwtToken:ISSUE"],
                     audience: appConfig["JwtToken:AUDIENCE"],
                     claims: claims,
-                    expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(2)),
+                    expires: DateTime.UtcNow.Add(TimeSpan.FromDays(3)),
                     signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes(appConfig["JwtToken:KEY"])), SecurityAlgorithms.HmacSha256));
                     var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
                     return encodedJwt;
@@ -81,6 +89,23 @@ namespace InPr.Domain.Services
             }
 
         }
+        public async Task<UserModel> GetUser(int id){
+            User user = await users.Read(id);
+            UserModel usermodel = new UserModel{Name = user.Name,Age = user.Age, Email = user.Email};
+            return usermodel;
+        }
+        public async Task<UserModel> GetUser(string Name){
+            User user = await users.Read(Name);
+            UserModel usermodel = new UserModel{Name = user.Name,Age = user.Age, Email = user.Email};
+            return usermodel;
+        }
+        public async Task<List<Article>> GetArticles(string Name){
+            User user = await users.Read(Name);
+            return user.Articles;
+        }
+
+        
+
        
     }
 }

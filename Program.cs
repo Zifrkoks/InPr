@@ -12,7 +12,6 @@ using System.Security.Claims;
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("config/AuthOptions.json");
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 string connection = builder.Configuration.GetConnectionString("DefaultConnection");

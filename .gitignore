@@ -21,6 +21,7 @@ build/
 bld/
 [Bb]in/
 [Oo]bj/
+obj/
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -232,3 +233,11 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+obj/Debug/net6.0/InPr.csproj.AssemblyReference.cache
+obj/Debug/net6.0/InPr.RazorAssemblyInfo.cache
+obj/Debug/net6.0/InPr.RazorAssemblyInfo.cs
+obj/Debug/net6.0/project.razor.json
+obj/Debug/net6.0/InPr.csproj.AssemblyReference.cache
+obj/Debug/net6.0/InPr.RazorAssemblyInfo.cache
+obj/Debug/net6.0/InPr.RazorAssemblyInfo.cs
+obj/Debug/net6.0/project.razor.json

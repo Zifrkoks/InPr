@@ -59,7 +59,7 @@ namespace InPr.Domain.Repositories
             return user;
         }
 
-        public async Task<bool> Update(User user)
+        public async Task<bool> UpdateAll(User user)
         {
             User newuser = await db.Users.FirstOrDefaultAsync(u => u.Name == user.Name);
             if(newuser != null){
@@ -68,7 +68,18 @@ namespace InPr.Domain.Repositories
             newuser.Email = user.Email;
             newuser.Verified_Email = false;
             }
-            newuser.Name = user.Name;
+            db.Users.Update(newuser);
+            await db.SaveChangesAsync();
+            return true;
+            }
+            else
+            return false;
+        }
+        public async Task<bool> UpdatePass(User user)
+        {
+            User newuser = await db.Users.FirstOrDefaultAsync(u => u.Name == user.Name);
+            if(newuser != null){
+            newuser.Password = user.Password;
             db.Users.Update(newuser);
             await db.SaveChangesAsync();
             return true;
@@ -95,6 +106,14 @@ namespace InPr.Domain.Repositories
             }
             else
                 return false;
+        }
+        public async Task<bool> AddArticle(string name, Article article)
+        {
+            User user =  await db.Users.FirstOrDefaultAsync(u => u.Name == name);
+            
+            user.Articles.Add(article);
+            await db.SaveChangesAsync();
+            return true;
         }
     }
 }

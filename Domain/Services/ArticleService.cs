@@ -10,17 +10,24 @@ namespace InPr.Domain.Services
     public class ArticleService
     {
         ArticleRepository articles;
-        public ArticleService(ArticleRepository articles){
+        UserRepository users;
+        public ArticleService(ArticleRepository articles, UserRepository users){
             this.articles = articles;
+            this.users = users;
         }
-        public async Task<bool> Create(ArticleModel articlemodel, int Author){
-            Article article= new Article{
+        public async Task<bool> Create(ArticleModel articlemodel, string Name){
+            User user = await users.Read(Name);
+            Article article = new Article{
                 Title = articlemodel.Title, 
                 Text = articlemodel.Text, 
                 DateTimeCreated = DateTime.Now, 
                 Readers = 0, 
-                AuthorId = Author};
-            return await articles.Create(article);
+                Author = user
+            };
+            int id = await articles.Create(article);
+            users.AddArticle(Name,await articles.Read(id));
+            return true;
+
         }
         public async Task<Article> Read(int id){
             Article article = await articles.Read(id);

@@ -17,7 +17,7 @@ namespace InPr.Domain.Providers
         }
         public static void AddDataServices(this IServiceCollection services)
         {
-            services.AddTransient<AuthService>();
+            services.AddTransient<UserService>();
             services.AddTransient<ArticleService>();
         }
 

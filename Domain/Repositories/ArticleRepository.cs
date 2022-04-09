@@ -18,16 +18,16 @@ namespace InPr.Domain.Repositories
             db = context;
         }
         
-        public async Task<bool> Create(Article article){
+        public async Task<int> Create(Article article){
             Article NewArticle = await db.Articles.FirstOrDefaultAsync( ar => ar.Title == article.Title);
             if(NewArticle == null)
             {
-                await db.Articles.AddAsync(article);
+                var article1 = await db.Articles.AddAsync(article);
                 await db.SaveChangesAsync();
-                return true;
+                return  article1.Entity.id;
             }
             else
-            return false;
+            return 0;
 
         }
         public async Task<Article> Read(int Id){

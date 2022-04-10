@@ -40,11 +40,19 @@ namespace InPr.Domain.Services
          public async Task<List<Article>> ReadList(int amount,int PageNum){
             return await articles.ReadList(amount, PageNum);
         }
-        public async  Task<bool> Update(ArticleModel articleModel){
-           return await articles.Update(articleModel);
+        public async  Task<bool> Update(int id, ArticleModel articleModel){
+            articleModel.id = id;
+            return await articles.Update(articleModel);
         }
-        public async Task<bool> Delete(int id){
+        public async Task<bool> Delete(int id,string name){
+            Article article = await articles.Read(id);
+            if((article.Author.Name == name) || (await users.ReadRole(name)).Name == "admin")
             return await articles.Delete(id);
+            else
+            return false;
+        }
+        public async Task<User> GetUser(ArticleModel model){
+            return (await articles.Read(model.id)).Author;
         }
     }
 }

@@ -103,7 +103,11 @@ namespace InPr.Domain.Services
             User user = await users.Read(Name);
             return user.Articles;
         }
-
+        public async Task<Role> GetRole(string Name)
+        {
+            Role role = await users.ReadRole(Name);
+            return role;
+        }
         
 
        

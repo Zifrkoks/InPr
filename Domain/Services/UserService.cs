@@ -20,7 +20,7 @@ namespace InPr.Domain.Services
     {
         public UserRepository users;
         IConfiguration appConfig;
-        UserService(UserRepository users, IConfiguration appConfig){
+        public UserService(UserRepository users, IConfiguration appConfig){
             this.users = users;
             this.appConfig = appConfig;
         }

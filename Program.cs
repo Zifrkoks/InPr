@@ -14,8 +14,7 @@ builder.Configuration.AddJsonFile("config/AuthOptions.json");
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-string connection = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<NewsDbContext>(options => options.UseSqlServer(connection));
+builder.Services.AddDbContext<NewsDbContext>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddJwtBearer((options) =>
     {
         options.TokenValidationParameters = new TokenValidationParameters

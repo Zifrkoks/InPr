@@ -9,13 +9,13 @@ namespace InPr.Web.Controllers
     [Controller]
     public class HomeController : Controller
     {
-    /*[Route("/")]
+    [Route("/")]
     [Route("/index")]
     [Route("/Home/index")]
     [HttpGet]
-    public IActionResult Index(){
-        
+    public JsonResult Index(){
+        return Json("working");
     }
     
-    */}
+    }
 }

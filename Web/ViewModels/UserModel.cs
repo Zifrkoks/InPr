@@ -12,6 +12,6 @@ namespace InPr.Web.ViewModels
         [Required]
         public string Email{get;set;}
         [Range(14, 110, ErrorMessage = "Недопустимый возраст")]
-        public string Age{get;set;}
+        public int Age{get;set;}
     }
 }

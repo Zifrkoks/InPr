@@ -19,7 +19,7 @@ namespace InPr.Domain.Database.Models
         [Column("Verified_Email")]
         public bool             Verified_Email  {get;set;}
 
-        public string           Age             {get;set;}
+        public int              Age             {get;set;}
 
         public string           Password        {get;set;}
         

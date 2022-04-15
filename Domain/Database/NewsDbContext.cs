@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+
 using InPr.Domain.Database.Models;
 
 namespace InPr.Domain.Database
@@ -16,13 +17,13 @@ namespace InPr.Domain.Database
     public NewsDbContext(DbContextOptions<NewsDbContext> options)
     : base(options)
     {
-        Database.EnsureCreated();   // создаем базу данных при первом обращении
+        Database.EnsureCreated();// создаем базу данных при первом обращении
     }
-    
- 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=helloappdb;Trusted_Connection=True;");
+        optionsBuilder.UseSqlite("Data Source=newsapp.db");
+        optionsBuilder.LogTo(Console.WriteLine);
+
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -35,7 +36,7 @@ namespace InPr.Domain.Database
             Role userRole = new Role { id = 2, Name = userRoleName };
             Role PublisherRole = new Role { id = 3, Name = PubRoleName };
 
-            User Admin = new User{id = 1, Name = "Zifrkoks",RoleId = adminRole.id, Password = "10122002Z"};
+            User Admin = new User{id = 1, Age = 20, Name = "Zifrkoks",RoleId = adminRole.id, Password = "10122002Z", Email = "qweasdzxcwsxxsw1234@gmail.com", Verified_Email = true, };
             modelBuilder.Entity<Role>().HasData(new Role[] { adminRole, userRole });
             modelBuilder.Entity<User>().HasData( new User[] { Admin });
             base.OnModelCreating(modelBuilder);

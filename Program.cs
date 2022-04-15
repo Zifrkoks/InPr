@@ -16,8 +16,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 string connection = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<NewsDbContext>(options => options.UseSqlServer(connection));
-builder.Services.AddDataRepositories();
-builder.Services.AddDataServices();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddJwtBearer((options) =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -39,6 +37,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             
          };
     });
+builder.Services.AddDataRepositories();
+builder.Services.AddDataServices();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

@@ -18,7 +18,7 @@ namespace InPr.Domain.Services
     
     public class UserService
     {
-        public UserRepository users{get;}
+        public UserRepository users;
         IConfiguration appConfig;
         UserService(UserRepository users, IConfiguration appConfig){
             this.users = users;

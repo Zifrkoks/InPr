@@ -4,40 +4,35 @@ using System.Linq;
 using System.Threading.Tasks;
 using InPr.Web.ViewModels;
 using InPr.Domain.Database.Models;
-using InPr.Domain.Repositories;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using InPr.Domain.Database;
+using Microsoft.EntityFrameworkCore;
 
-using Microsoft.AspNetCore.Authentication.Cookies;
 namespace InPr.Domain.Services
 {
     
     public class UserService
     {
-        public UserRepository users;
+        NewsDbContext db;
         IConfiguration appConfig;
-        public UserService(UserRepository users, IConfiguration appConfig){
-            this.users = users;
+        public UserService(IConfiguration appConfig, NewsDbContext db){
+            this.db = db;
             this.appConfig = appConfig;
         }
-        public async Task<bool> UpdatePass(AuthModel model){
-            User user = await users.Read(model.Name);
-            user.Password = model.Password;
-            await users.UpdatePass(user);
-            return true;
-        } 
-        public async Task<string> Login(AuthModel auth){
-            User user = await users.Read(auth);
-            if(user != null)
+        public async Task<string> LoginAsync(AuthModel auth){
+            User? user = await db.Users.FirstOrDefaultAsync(u => u.Name == auth.Name && u.Password == auth.Password);
+;           
+            if(user != null && user.UserRole != null && user.UserRole.Name != null && user.Email != null)
             {
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, user.UserRole?.Name),
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, user.UserRole.Name),
                     new Claim("id",user.id.ToString())
                 };    // создаем JWT-токен
                 var jwt = new JwtSecurityToken(
@@ -50,28 +45,45 @@ namespace InPr.Domain.Services
                 return encodedJwt;
             }
             else
-            return null;
+            return "login error";
              
         }
-        public async Task<string> Registation(UserModel usermodel, string roleName){
-            User user = new User{
+        
+        public async Task<string> RegistationAsync(UserModel usermodel, string roleName){
+            User? user = await db.Users.FirstOrDefaultAsync(u => u.Name == usermodel.Name);
+            if(user != null)
+            {
+                return "пользователь с таким логином уже существует";
+            }
+            user = await db.Users.FirstOrDefaultAsync(u => u.Email == usermodel.Email);
+            if(user != null)
+            return "пользователь с таким email уже существует";
+            user = new User{
                 Name = usermodel.Name,
                 Age = usermodel.Age,
                 Password = usermodel.Password,
                 Verified_Email = false,
                 Email = usermodel.Email
                 };
-            if(roleName =="publisher")
-            {
-                user.UserRole = await users.ReadRole(roleName);
-            }
-            else
-                user.UserRole = await users.ReadRole("reader");
-            
-            if(await users.Create(user) == true){
+                if(roleName =="publisher")
+                {
+                    user.UserRole = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == roleName);
+                }
+                else
+                {
+                    user.UserRole = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == "reader");
+                }
+                await db.Users.AddAsync(user);
+                await db.SaveChangesAsync();            
+
+            if(user != null 
+            && user.UserRole != null 
+            && user.UserRole.Name != null 
+            && user.Email != null){
                 var claims = new List<Claim> { 
+
                     new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, user.UserRole?.Name),
+                    new Claim(ClaimsIdentity.DefaultRoleClaimType, user.UserRole.Name),
                     new Claim("id",user.id.ToString())
 
                 };
@@ -84,30 +96,39 @@ namespace InPr.Domain.Services
                     var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
                     return encodedJwt;
             }
-            else{
-                return null;
-            }
+            return "registration error";
+        }
+        
+         
+        public async Task<User?> GetUserAsync(int id){
+            User? user = await db.Users.FirstOrDefaultAsync(u => u.id == id);
+            if(user != null)
+            user.Password = "";
+            return user;
+        }
+        
+        public async Task<User?> GetUserAsync(string Name){
+            User? user = await db.Users.FirstOrDefaultAsync(u => u.Name == Name);
+            if(user != null)
+            user.Password = "";
+            return user;
 
         }
-        public async Task<UserModel> GetUser(int id){
-            User user = await users.Read(id);
-            UserModel usermodel = new UserModel{Name = user.Name,Age = user.Age, Email = user.Email};
-            return usermodel;
-        }
-        public async Task<UserModel> GetUser(string Name){
-            User user = await users.Read(Name);
-            UserModel usermodel = new UserModel{Name = user.Name,Age = user.Age, Email = user.Email};
-            return usermodel;
-        }
-        public async Task<List<Article>> GetArticles(string Name){
-            User user = await users.Read(Name);
+         
+        public async Task<List<Article>> GetArticlesAsync(string Name){
+            User? user = await db.Users.FirstOrDefaultAsync(u => u.Name == Name);
+            if(user != null)
             return user.Articles;
+            else
+            return new();
         }
-        public async Task<Role> GetRole(string Name)
+        
+        public async Task<Role?> GetRoleAsync(string Name)
         {
-            Role role = await users.ReadRole(Name);
+            Role? role = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == Name);
             return role;
         }
+        
         
 
        

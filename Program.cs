@@ -13,7 +13,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("config/AuthOptions.json");
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<NewsDbContext>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddJwtBearer((options) =>
     {
@@ -36,16 +35,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             
          };
     });
-builder.Services.AddDataRepositories();
 builder.Services.AddDataServices();
 var app = builder.Build();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseHsts();
 
 app.UseDefaultFiles();
 app.UseStaticFiles();

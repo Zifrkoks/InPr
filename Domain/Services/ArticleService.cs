@@ -4,55 +4,86 @@ using System.Linq;
 using System.Threading.Tasks;
 using InPr.Web.ViewModels;
 using InPr.Domain.Database.Models;
-using InPr.Domain.Repositories;
+using InPr.Domain.Database;
+using Microsoft.EntityFrameworkCore;
+
 namespace InPr.Domain.Services
 {
     public class ArticleService
     {
-        ArticleRepository articles;
-        UserRepository users;
-        public ArticleService(ArticleRepository articles, UserRepository users){
-            this.articles = articles;
-            this.users = users;
+        NewsDbContext db;
+        public ArticleService( NewsDbContext db){
+            this.db = db;
         }
-        public async Task<bool> Create(ArticleModel articlemodel, string Name){
-            User user = await users.Read(Name);
-            Article article = new Article{
-                Title = articlemodel.Title, 
-                Text = articlemodel.Text, 
-                DateTimeCreated = DateTime.Now, 
-                Readers = 0, 
-                Author = user
-            };
-            int id = await articles.Create(article);
-            users.AddArticle(Name,await articles.Read(id));
-            return true;
+        public async Task<bool> CreateAsync(ArticleModel articlemodel, string? Name){
+            User? user = await db.Users.FirstOrDefaultAsync(u => u.Name == Name);
+            if(user != null && Name != null){
+                Article article = new Article{
+                    Title = articlemodel.Title, 
+                    Text = articlemodel.Text, 
+                    DateTimeCreated = DateTime.Now, 
+                    Readers = 0, 
+                    user = user
+                };
+                    user.Articles.Add(article);
+                    db.Users.Update(user);
+                    await db.Articles.AddAsync(article);
+                    await db.SaveChangesAsync();
+                return true;
+            }
+            return false;
 
         }
-        public async Task<Article> Read(int id){
-            Article article = await articles.Read(id);
+        public async Task<Article?> ReadAsync(int id){
+            Article? article = await db.Articles.FirstOrDefaultAsync(u => u.id == id);
+            if(article != null)
             return article;
+            else 
+            return null;
         }
-        public async Task<List<Article>> ReadList(string name){
-            List<Article> article = await articles.Read(name);
-            return article;
+        public async Task<List<Article>> ReadListAsync(string name){
+            List<Article> Articles = await Task.Run(()=>db.Articles.AsParallel().Where(p => p.Title == name).ToList());
+            return Articles;
         }
-         public async Task<List<Article>> ReadList(int amount,int PageNum){
-            return await articles.ReadList(amount, PageNum);
+         public async Task<List<Article>> ReadListAsync(int amount,int PageNum){
+            return await Task.Run(()=>db.Articles.AsParallel().Skip(amount*PageNum).Take(amount).ToList());
         }
-        public async  Task<bool> Update(int id, ArticleModel articleModel){
-            articleModel.id = id;
-            return await articles.Update(articleModel);
-        }
-        public async Task<bool> Delete(int id,string name){
-            Article article = await articles.Read(id);
-            if((article.Author.Name == name) || (await users.ReadRole(name)).Name == "admin")
-            return await articles.Delete(id);
+        public async  Task<bool> UpdateAsync(int id, ArticleModel articleModel){
+            Article? UpdArticle = await db.Articles.FirstOrDefaultAsync(article1 => article1.id == id);
+            if(UpdArticle != null)
+            {
+                UpdArticle.Title = articleModel.Title;
+                UpdArticle.Text = articleModel.Text;
+                UpdArticle.DateTimeCreated = DateTime.Now;
+                await Task.Run(() => db.Articles.Update(UpdArticle));
+                await db.SaveChangesAsync();
+                return true;
+            }
             else
             return false;
         }
-        public async Task<User> GetUser(ArticleModel model){
-            return (await articles.Read(model.id)).Author;
+        public async Task<bool> DeleteAsync(int id,string name){
+            Article? article = await db.Articles.FirstOrDefaultAsync((r)=> r.id == id);
+            Role? role = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == name);
+            if(role != null && article != null && article.user != null){
+            if((article.user.Name == name) || role.Name == "admin"){
+            db.Articles.Remove(article);
+            return true;
+            }
+            else
+            return false;
+            }
+            else
+            return false;
         }
+        
+        public async Task<User?> GetUserAsync(ArticleModel model){
+            Article? article = await db.Articles.FirstOrDefaultAsync(a => a.id == model.id);
+            if(article != null && article.user != null)
+            return article.user;
+            else
+            return null;
+        }
+        
     }
 }

@@ -11,11 +11,12 @@ namespace InPr.Web.Controllers
     {
     [Route("/")]
     [Route("/index")]
-    [Route("/Home/index")]
+    [Route("/home/index")]
     [HttpGet]
-    public JsonResult Index(){
-        return Json("working");
+    public string Index(){
+        return "working";
     }
     
     }
+    
 }

@@ -15,10 +15,10 @@ namespace InPr.Web.Controllers;
             this.articles = articles;
 
         }
+        [Authorize(Roles = "publisher,admin")]
         [HttpPost]
         [Route("articles")]
-        [Authorize(Roles = "publisher, admin")]
-        public async Task<string> Create(ArticleModel article){
+        public async Task<string> Create([Bind("Title","Text")]ArticleModel article){
             if(HttpContext.User != null && HttpContext.User.Identity != null && HttpContext.User.Identity.Name != null){
             if(ModelState.IsValid){
             if(await articles.CreateAsync(article,HttpContext.User.Identity.Name))
@@ -32,36 +32,37 @@ namespace InPr.Web.Controllers;
             else
             return "you ar not logged in";
         }
+        [Authorize(Roles = "publisher,admin")]
         [HttpDelete]
         [Route("articles/{id}")]
-        [Authorize("publisher, admin")]
         public async Task<string> Delete(int id)
         {
         if(HttpContext.User != null && HttpContext.User.Identity != null && HttpContext.User.Identity.Name != null){
-            if(await articles.DeleteAsync(id,HttpContext.User.Identity.Name))
-                return "article Deleted";
-            else
-                return "access denied";
+            return await articles.DeleteAsync(id, HttpContext.User.Identity.Name);
             }
             else
             return "you ar not logged in";
         }
         [HttpPut]
-        [Authorize("publisher, admin")]
+        [Authorize(Roles = "publisher,admin")]
         [Route("articles/{id}")]
-        public async Task<string> Update(int id,ArticleModel newarticle){
+        public async Task<string> Update(int id,[Bind("Title","Text"), FromBody]ArticleModel newarticle){
             if(HttpContext.User != null && HttpContext.User.Identity != null && HttpContext.User.Identity.Name != null){
-            User? user = await articles.GetUserAsync(newarticle);
-            if(user != null && user.Name == HttpContext.User.Identity.Name)
-            {
-                await articles.UpdateAsync(id,newarticle);
-                return "article updated";
+                User? user = await articles.GetUserAsync(id);
+                if(user != null){
+                    if(user.Name == HttpContext.User.Identity.Name)
+                    {
+                        await articles.UpdateAsync(id,newarticle);
+                        return "article updated";
+                    }
+                    else
+                        return "access denied, Article created:" + user.Name + ", you not he";
+                }
+                else 
+                return "error in find user";
             }
             else
-                return "access denied";
-            }
-            else
-            return "you ar not logged in"; 
+            return "error";
         }
         [HttpGet]
         [AllowAnonymous]
@@ -73,6 +74,8 @@ namespace InPr.Web.Controllers;
             else
             return new Article{ id = 0};
         }
+        [HttpGet]
+        [AllowAnonymous]
         [Route("/page{number}/{count}")]
         public async Task<List<Article>> ReadPage(int number, int count)
         {

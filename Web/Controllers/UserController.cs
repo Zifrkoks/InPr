@@ -29,5 +29,17 @@ public class UserController : Controller
     public async Task<List<Article>> GetArticles(string Name){
         return await users.GetArticlesAsync(Name);
     }
+    [HttpGet]
+    [Authorize("admin")]
+    [Route("admin/users")]
+    public async Task<List<User>> GetUsers(int count, int page){
+        return await users.GetAllUsersAsync(count, page);
+    }
+    [HttpDelete]
+    [Authorize("admin")]
+    [Route("admin/users/{id}")]
+    public async Task<string> DeleteUser(int id){
+        return await users.DeleteAsync(id);
+    }
     
 }

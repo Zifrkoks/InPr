@@ -7,6 +7,7 @@ using InPr.Domain.Database.Models;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
 using System.Text;
+using System.IdentityModel;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -25,30 +26,55 @@ namespace InPr.Domain.Services
             this.appConfig = appConfig;
         }
         public async Task<string> LoginAsync(AuthModel auth){
-            User? user = await db.Users.FirstOrDefaultAsync(u => u.Name == auth.Name && u.Password == auth.Password);
+            User? user = await db.Users.Include(u => u.UserRole).FirstOrDefaultAsync(u => u.Name == auth.Name && u.Password == auth.Password);
 ;           
-            if(user != null && user.UserRole != null && user.UserRole.Name != null && user.Email != null)
+            if(user != null && user.UserRole != null && user.UserRole.Name != null && user.Email != null && user.Name != null)
             {
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, user.UserRole.Name),
+                    new Claim(ClaimTypes.Name, user.Name),
+                    new Claim(ClaimTypes.Role, user.UserRole.Name),
                     new Claim("id",user.id.ToString())
                 };    // создаем JWT-токен
                 var jwt = new JwtSecurityToken(
-                    issuer: appConfig["JwtToken:ISSUE"],
+                    issuer: appConfig["JwtToken:ISSUER"],
                     audience: appConfig["JwtToken:AUDIENCE"],
                     claims: claims,
-                    expires: DateTime.UtcNow.Add(TimeSpan.FromMinutes(2)),
+                    expires: DateTime.UtcNow.Add(TimeSpan.FromDays(3)),
                     signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes(appConfig["JwtToken:KEY"])), SecurityAlgorithms.HmacSha256));
                 var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
                 return encodedJwt;
             }
-            else
-            return "login error";
+            else{
+                if(user == null)
+                return "user equal null";
+                else if(user.UserRole == null)
+                return "user role equal null";
+                else if(user.UserRole.Name == null)
+                return "user role name equal null";
+                else if(user.Email == null)
+                return "user email equal null";
+                else
+                    return "login error";
+            }
+            
              
         }
-        
+
+        public async Task<string> DeleteAsync(int id)
+        {
+            User? user = db.Users.Find(id);
+            if(user == null)
+                return "not found";
+            await Task.Run(()=>db.Users.Remove(user));
+            return "user deleted";
+        }
+
+        public async Task<List<User>> GetAllUsersAsync(int count, int page)
+        {
+            return await Task.Run(()=>db.Users.AsParallel().Skip(count*page).Take(count).ToList());
+        }
+
         public async Task<string> RegistationAsync(UserModel usermodel, string roleName){
             User? user = await db.Users.FirstOrDefaultAsync(u => u.Name == usermodel.Name);
             if(user != null)
@@ -58,7 +84,8 @@ namespace InPr.Domain.Services
             user = await db.Users.FirstOrDefaultAsync(u => u.Email == usermodel.Email);
             if(user != null)
             return "пользователь с таким email уже существует";
-            user = new User{
+
+            User newuser = new User{
                 Name = usermodel.Name,
                 Age = usermodel.Age,
                 Password = usermodel.Password,
@@ -67,28 +94,38 @@ namespace InPr.Domain.Services
                 };
                 if(roleName =="publisher")
                 {
-                    user.UserRole = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == roleName);
+                    Role? publisher = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == roleName);
+                    if(publisher != null)
+                    newuser.RoleId = publisher.id;
+                    else{
+                        Role? reader = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == "reader");
+                        newuser.RoleId = reader.id;
+                    }
+
                 }
                 else
                 {
-                    user.UserRole = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == "reader");
+                    Role? reader = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == "reader");
+                    if(reader != null)
+                    newuser.RoleId = reader.id;
                 }
-                await db.Users.AddAsync(user);
+                await db.Users.AddAsync(newuser);
                 await db.SaveChangesAsync();            
 
-            if(user != null 
-            && user.UserRole != null 
-            && user.UserRole.Name != null 
-            && user.Email != null){
+            if(newuser != null 
+            && newuser.UserRole != null 
+            && newuser.UserRole.Name != null 
+            && newuser.Email != null
+            && newuser.Name != null){
                 var claims = new List<Claim> { 
 
-                    new Claim(ClaimsIdentity.DefaultNameClaimType, user.Email),
-                    new Claim(ClaimsIdentity.DefaultRoleClaimType, user.UserRole.Name),
-                    new Claim("id",user.id.ToString())
+                    new Claim(ClaimTypes.Name, newuser.Name),
+                    new Claim(ClaimTypes.Role, newuser.UserRole?.Name),
+                    new Claim("id",newuser.id.ToString())
 
                 };
                     var jwt = new JwtSecurityToken(
-                    issuer: appConfig["JwtToken:ISSUE"],
+                    issuer: appConfig["JwtToken:ISSUER"],
                     audience: appConfig["JwtToken:AUDIENCE"],
                     claims: claims,
                     expires: DateTime.UtcNow.Add(TimeSpan.FromDays(3)),

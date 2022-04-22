@@ -34,7 +34,7 @@ namespace InPr.Domain.Database
             Role PublisherRole = new Role { id = 3, Name = PubRoleName };
             User Admin = new User{id = 1, Age = 20, Name = "Zifrkoks",RoleId = adminRole.id, Password = "10122002Z", Email = "qweasdzxcwsxxsw1234@gmail.com", Verified_Email = true, };
             Article article = new Article{id = 1, Title = "lol", Text = "bruh", userId = Admin.id, DateTimeCreated = DateTime.Now, Readers = 0};
-            modelBuilder.Entity<Role>().HasData(new Role[] { adminRole, userRole });
+            modelBuilder.Entity<Role>().HasData(new Role[] { adminRole, userRole, PublisherRole });
             modelBuilder.Entity<User>().HasData( new User[] { Admin });
             modelBuilder.Entity<Article>().HasData( new Article[]{article});
 

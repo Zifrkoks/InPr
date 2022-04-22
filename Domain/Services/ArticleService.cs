@@ -62,23 +62,17 @@ namespace InPr.Domain.Services
             else
             return false;
         }
-        public async Task<bool> DeleteAsync(int id,string name){
+        public async Task<string> DeleteAsync(int id,string name){
             Article? article = await db.Articles.FirstOrDefaultAsync((r)=> r.id == id);
-            Role? role = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == name);
-            if(role != null && article != null && article.user != null){
-            if((article.user.Name == name) || role.Name == "admin"){
+            if(article == null)
+                return "article not found";
             db.Articles.Remove(article);
-            return true;
-            }
-            else
-            return false;
-            }
-            else
-            return false;
+            await db.SaveChangesAsync();
+            return "article deleted";
         }
         
-        public async Task<User?> GetUserAsync(ArticleModel model){
-            Article? article = await db.Articles.FirstOrDefaultAsync(a => a.id == model.id);
+        public async Task<User?> GetUserAsync(int id){
+            Article? article = await db.Articles.Include(u=>u.user).FirstOrDefaultAsync(a => a.id == id);
             if(article != null && article.user != null)
             return article.user;
             else

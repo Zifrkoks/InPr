@@ -11,6 +11,6 @@ namespace InPr.Domain.Database.Models
         [Key]
         [Column("id")]
         public int      id      {get;set;}
-        public string   Name    {get;set;}
+        public string?  Name    {get;set;}
     }
 }

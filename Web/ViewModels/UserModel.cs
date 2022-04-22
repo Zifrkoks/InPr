@@ -9,9 +9,7 @@ namespace InPr.Web.ViewModels
     public class UserModel: AuthModel
     {
         public int id{get;set;}
-        [Required]
-        public string Email{get;set;}
-        [Range(14, 110, ErrorMessage = "Недопустимый возраст")]
-        public string Age{get;set;}
+        public string? Email{get;set;}
+        public int Age{get;set;}
     }
 }

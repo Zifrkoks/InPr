@@ -7,26 +7,29 @@ using InPr.Web.ViewModels;
 using InPr.Domain.Services;
 namespace InPr.Web.Controllers;
 
-    [Controller]
-    [Route("/Auth")]
-    public class AuthController:Controller
+    [ApiController]
+    public class AuthController:ControllerBase
     {
         UserService users;
         public AuthController(UserService users){
             this.users = users;
         }
-        [Route("/Registration")]
+        [Route("auth/registration")]
         [HttpPost]
-        public async Task<JsonResult> Registration(UserModel user, string Role){
+        public async Task<string> Registration([Bind("Name","Password","Age","Email")]UserModel user, string Role){
             
-            return Json(await users.Registation(user, Role));
+            return await users.RegistationAsync(user, Role);
 
         }
-        [Route("/Login")]
+        [Route("auth/login")]
         [HttpPost]
-        public async Task<JsonResult> Login(AuthModel user){
+        public async Task<string> Login([Bind("Name","Password")]AuthModel user){
             
-            return Json(await users.Login(user));
+            string JwtBearerToken = await users.LoginAsync(user);
+            if(JwtBearerToken != null)
+            return JwtBearerToken;
+            else
+            return "lmoa";
 
         }
     }

@@ -12,17 +12,15 @@ namespace InPr.Domain.Database.Models
         [Key]
         [Column("id")]
         public int      id              {get;set;}
-        
-        public string   Title           {get;set;}
-
-        public string   Text            {get;set;}
-        [Column("Date_Created")]
-
-
-        public int   AuthorId         {get;set;}
-        [ForeignKey("AutorId")]
-        public User     Author           {get;set;}
         [Required]
+        public string?  Title           {get;set;}
+
+        public string?  Text            {get;set;}
+        
+        public int      userId          {get;set;}
+        public User?    user            {get;set;}
+        [Required]
+        [Column("Date_Created")]
         public DateTime DateTimeCreated {get;set;}
 
         public int      Readers         {get;set;}

@@ -3,62 +3,83 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using InPr.Domain.Services;
 using InPr.Web.ViewModels;
+using InPr.Domain.Database.Models;
+
 namespace InPr.Web.Controllers;
 
     [ApiController]
-    [Route("/articles")]
-    public class NewsController:Controller
+    public class NewsController:ControllerBase
     {
         ArticleService articles;
         public NewsController(ArticleService articles){
             this.articles = articles;
 
         }
+        [Authorize(Roles = "publisher,admin")]
         [HttpPost]
-        [Route("/")]
-        [Authorize(Roles = "publisher, admin")]
-        public async Task<JsonResult> Create(ArticleModel article){
+        [Route("articles")]
+        public async Task<string> Create([Bind("Title","Text")]ArticleModel article){
+            if(HttpContext.User != null && HttpContext.User.Identity != null && HttpContext.User.Identity.Name != null){
             if(ModelState.IsValid){
-            if(await articles.Create(article,HttpContext.User.Identity.Name))
-                return Json("article Created");
+            if(await articles.CreateAsync(article,HttpContext.User.Identity.Name))
+                return "article Created";
                 else
-                return Json("article error");
+                return "article error";
             }
             else
-            return Json("model invalid");
-        }
-        [HttpDelete]
-        [Route("/{id}")]
-        [Authorize("publisher, admin")]
-        public async Task<JsonResult> Delete(int id)
-        {
-            if(await articles.Delete(id,HttpContext.User.Identity.Name))
-                return Json("article Deleted");
+            return "model invalid";
+            }
             else
-                return Json("access denied");
+            return "you ar not logged in";
+        }
+        [Authorize(Roles = "publisher,admin")]
+        [HttpDelete]
+        [Route("articles/{id}")]
+        public async Task<string> Delete(int id)
+        {
+        if(HttpContext.User != null && HttpContext.User.Identity != null && HttpContext.User.Identity.Name != null){
+            return await articles.DeleteAsync(id, HttpContext.User.Identity.Name);
+            }
+            else
+            return "you ar not logged in";
         }
         [HttpPut]
-        [Authorize("publisher, admin")]
-        [Route("/{id}")]
-        public async Task<JsonResult> Update(int id,ArticleModel newarticle){
-            if((await articles.GetUser(newarticle)).Name == HttpContext.User.Identity.Name)
-            {
-                await articles.Update(id,newarticle);
-                return Json("article updated");
+        [Authorize(Roles = "publisher,admin")]
+        [Route("articles/{id}")]
+        public async Task<string> Update(int id,[Bind("Title","Text"), FromBody]ArticleModel newarticle){
+            if(HttpContext.User != null && HttpContext.User.Identity != null && HttpContext.User.Identity.Name != null){
+                User? user = await articles.GetUserAsync(id);
+                if(user != null){
+                    if(user.Name == HttpContext.User.Identity.Name)
+                    {
+                        await articles.UpdateAsync(id,newarticle);
+                        return "article updated";
+                    }
+                    else
+                        return "access denied, Article created:" + user.Name + ", you not he";
+                }
+                else 
+                return "error in find user";
             }
             else
-                return Json("access denied");
+            return "error";
         }
         [HttpGet]
         [AllowAnonymous]
-        [Route("/{id}")]
-        public async Task<JsonResult> Read(int id){
-            return Json(await articles.Read(id));
+        [Route("articles/{id}")]
+        public async Task<Article> Read(int id){
+            Article? article = await articles.ReadAsync(id);
+            if(article != null)
+            return article;
+            else
+            return new Article{ id = 0};
         }
+        [HttpGet]
+        [AllowAnonymous]
         [Route("/page{number}/{count}")]
-        public async Task<JsonResult> ReadPage(int number, int count)
+        public async Task<List<Article>> ReadPage(int number, int count)
         {
-            return Json(articles.ReadList(count,number));
+            return await articles.ReadListAsync(count,number);
         }
 
 

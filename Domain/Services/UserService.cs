@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using InPr.Web.ViewModels;
 using InPr.Domain.Database.Models;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
 using System.Text;
 using System.IdentityModel;
@@ -152,12 +151,18 @@ namespace InPr.Domain.Services
 
         }
          
-        public async Task<List<Article>> GetArticlesAsync(string Name){
-            User? user = await db.Users.FirstOrDefaultAsync(u => u.Name == Name);
-            if(user != null)
-            return user.Articles;
-            else
+        public async Task<List<ArticleModel>> GetArticlesAsync(string Name){
+            User? user = await db.Users.Include(u=>u.Articles).FirstOrDefaultAsync(u => u.Name == Name);
+            if(user == null)
             return new();
+            List<ArticleModel> articles = new List<ArticleModel>();
+            foreach(Article a in user.Articles)
+            {
+                ArticleModel article = new ArticleModel{id = a.id, Title = a.Title, Text = a.Text, Username = a.user.Name};
+                articles.Add(article);
+            }
+            return articles;
+            
         }
         
         public async Task<Role?> GetRoleAsync(string Name)

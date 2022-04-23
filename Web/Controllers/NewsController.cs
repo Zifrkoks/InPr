@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using InPr.Domain.Services;
 using InPr.Web.ViewModels;
 using InPr.Domain.Database.Models;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
 
 namespace InPr.Web.Controllers;
 
@@ -67,17 +70,13 @@ namespace InPr.Web.Controllers;
         [HttpGet]
         [AllowAnonymous]
         [Route("articles/{id}")]
-        public async Task<Article> Read(int id){
-            Article? article = await articles.ReadAsync(id);
-            if(article != null)
-            return article;
-            else
-            return new Article{ id = 0};
+        public async Task<ArticleModel?> Read(int id){
+            return await articles.ReadAsync(id);
         }
         [HttpGet]
         [AllowAnonymous]
-        [Route("/page{number}/{count}")]
-        public async Task<List<Article>> ReadPage(int number, int count)
+        [Route("page{number}/{count}")]
+        public async Task<List<ArticleModel>> ReadPage(int number, int count)
         {
             return await articles.ReadListAsync(count,number);
         }

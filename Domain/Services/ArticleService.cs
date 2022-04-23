@@ -12,7 +12,7 @@ namespace InPr.Domain.Services
     public class ArticleService
     {
         NewsDbContext db;
-        public ArticleService( NewsDbContext db){
+        public ArticleService(NewsDbContext db){
             this.db = db;
         }
         public async Task<bool> CreateAsync(ArticleModel articlemodel, string? Name){
@@ -34,19 +34,33 @@ namespace InPr.Domain.Services
             return false;
 
         }
-        public async Task<Article?> ReadAsync(int id){
-            Article? article = await db.Articles.FirstOrDefaultAsync(u => u.id == id);
-            if(article != null)
-            return article;
-            else 
+        public async Task<ArticleModel?> ReadAsync(int id){
+            Article? a = await db.Articles.Include(a=>a.user).FirstOrDefaultAsync(u => u.id == id);
+            if(a == null)
             return null;
+            ArticleModel article = new ArticleModel{id = a.id, Title = a.Title, Text = a.Text, Username = a.user.Name};
+            return article;
         }
-        public async Task<List<Article>> ReadListAsync(string name){
-            List<Article> Articles = await Task.Run(()=>db.Articles.AsParallel().Where(p => p.Title == name).ToList());
-            return Articles;
+        public async Task<List<ArticleModel>> ReadListAsync(string name){
+            List<Article> Articles = await Task.Run(()=>db.Articles.Include(u=>u.user).AsParallel().Where(p => p.Title == name).ToList());
+            List<ArticleModel> articles = new List<ArticleModel>();
+            foreach(Article a in Articles)
+            {
+                ArticleModel article = new ArticleModel{id = a.id, Title = a.Title, Text = a.Text, Username = a.user.Name};
+                articles.Add(article);
+            }
+            return articles;
         }
-         public async Task<List<Article>> ReadListAsync(int amount,int PageNum){
-            return await Task.Run(()=>db.Articles.AsParallel().Skip(amount*PageNum).Take(amount).ToList());
+         public async Task<List<ArticleModel>> ReadListAsync(int amount,int PageNum){
+            List<Article> Articles =  await Task.Run(()=>db.Articles.AsParallel().Skip(amount*PageNum).Take(amount).ToList());
+            List<ArticleModel> articles = new List<ArticleModel>();
+
+            foreach(Article a in Articles)
+            {
+                ArticleModel article = new ArticleModel{id = a.id, Title = a.Title, Text = a.Text, Username = a.user.Name};
+                articles.Add(article);
+            }
+            return articles;
         }
         public async  Task<bool> UpdateAsync(int id, ArticleModel articleModel){
             Article? UpdArticle = await db.Articles.FirstOrDefaultAsync(article1 => article1.id == id);

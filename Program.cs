@@ -8,17 +8,13 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using React.AspNet;
-using JavaScriptEngineSwitcher.ChakraCore;
-using JavaScriptEngineSwitcher.Extensions.MsDependencyInjection;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("config/AuthOptions.json");
 builder.Services.AddCors();
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddDbContext<NewsDbContext>();
-builder.Services.AddMemoryCache();
+builder.Services.AddControllers().AddJsonOptions(x =>
+                x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);builder.Services.AddDbContext<NewsDbContext>();
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication( auth=>
 {
@@ -46,19 +42,12 @@ builder.Services.AddAuthentication( auth=>
             
          };
     });
-builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-builder.Services.AddReact();
 builder.Services.AddDataServices();
-builder.Services.AddJsEngineSwitcher(options => options.DefaultEngineName = ChakraCoreJsEngine.EngineName).AddChakraCore();
 var app = builder.Build();
 app.UseHsts();
 app.UseCors();
-app.UseDefaultFiles();
-app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.MapControllers();
-
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseReact(config => { });
 app.Run();

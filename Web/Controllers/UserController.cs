@@ -43,5 +43,17 @@ public class UserController : Controller
     public async Task<string> DeleteUser(int id){
         return await users.DeleteAsync(id);
     }
-    
+    [Route("admin/users/{Name}")]
+    public async Task<string> DeleteUser(string Name){
+        User user = await users.GetUserAsync(Name);
+        if(user != null)
+        return await users.DeleteAsync(user.id);
+        else
+        return "user not found";
+    }
+    [Route("admin/users/{id}")]
+    public async Task<string> GetFullArticle(int id){
+        return await users.DeleteAsync(id);
+    }
+
 }

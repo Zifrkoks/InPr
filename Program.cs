@@ -9,10 +9,12 @@ using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddJsonFile("config/AuthOptions.json");
-builder.Services.AddCors();
 builder.Services.AddControllers().AddJsonOptions(x =>
                 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);builder.Services.AddDbContext<NewsDbContext>();
 builder.Services.AddAuthorization();
@@ -42,12 +44,13 @@ builder.Services.AddAuthentication( auth=>
             
          };
     });
+builder.Services.AddCors();
 builder.Services.AddDataServices();
 var app = builder.Build();
 app.UseHsts();
-app.UseCors();
 app.UseHttpsRedirection();
 app.MapControllers();
+app.UseCors(builder => {builder.AllowAnyOrigin(); builder.AllowAnyHeader(); builder.AllowAnyMethod();});
 app.UseAuthentication();
 app.UseAuthorization();
 app.Run();

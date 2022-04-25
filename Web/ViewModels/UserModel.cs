@@ -11,5 +11,7 @@ namespace InPr.Web.ViewModels
         public int id{get;set;}
         public string? Email{get;set;}
         public int Age{get;set;}
+
+        public string? role{get;set;}
     }
 }

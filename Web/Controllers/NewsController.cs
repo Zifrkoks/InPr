@@ -75,7 +75,13 @@ namespace InPr.Web.Controllers;
         }
         [HttpGet]
         [AllowAnonymous]
-        [Route("page{number}/{count}")]
+        [Route("articles/search/{name}")]
+        public async Task<List<ArticleModel>> ReadByName(string name){
+            return await articles.ReadListAsync(name);
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        [Route("articles/page{number}/{count}")]
         public async Task<List<ArticleModel>> ReadPage(int number, int count)
         {
             return await articles.ReadListAsync(count,number);

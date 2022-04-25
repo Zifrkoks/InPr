@@ -12,6 +12,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using InPr.Domain.Database;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace InPr.Domain.Services
 {
@@ -24,7 +25,7 @@ namespace InPr.Domain.Services
             this.db = db;
             this.appConfig = appConfig;
         }
-        public async Task<string> LoginAsync(AuthModel auth){
+        public async Task<AuthResultModel> LoginAsync(AuthModel auth){
             User? user = await db.Users.Include(u => u.UserRole).FirstOrDefaultAsync(u => u.Name == auth.Name && u.Password == auth.Password);
 ;           
             if(user != null && user.UserRole != null && user.UserRole.Name != null && user.Email != null && user.Name != null)
@@ -42,19 +43,20 @@ namespace InPr.Domain.Services
                     expires: DateTime.UtcNow.Add(TimeSpan.FromDays(3)),
                     signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes(appConfig["JwtToken:KEY"])), SecurityAlgorithms.HmacSha256));
                 var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
-                return encodedJwt;
+                AuthResultModel tokenmodel = new AuthResultModel{Name = user.Name, Role = user.UserRole.Name,Token = encodedJwt};
+                return tokenmodel;
             }
             else{
                 if(user == null)
-                return "user equal null";
+                 return new AuthResultModel{mes = "user equal null"};
                 else if(user.UserRole == null)
-                return "user role equal null";
+                 return new AuthResultModel{mes = "user role equal null"};
                 else if(user.UserRole.Name == null)
-                return "user role name equal null";
+                 return new AuthResultModel{mes = "user role name equal null"};
                 else if(user.Email == null)
-                return "user email equal null";
+                 return new AuthResultModel{mes = "user email equal null"};
                 else
-                    return "login error";
+                    return new AuthResultModel{mes = "login error"};
             }
             
              
@@ -74,15 +76,15 @@ namespace InPr.Domain.Services
             return await Task.Run(()=>db.Users.AsParallel().Skip(count*page).Take(count).ToList());
         }
 
-        public async Task<string> RegistationAsync(UserModel usermodel, string roleName){
+        public async Task<AuthResultModel> RegistationAsync(UserModel usermodel){
             User? user = await db.Users.FirstOrDefaultAsync(u => u.Name == usermodel.Name);
             if(user != null)
             {
-                return "пользователь с таким логином уже существует";
+                return new AuthResultModel{mes = "пользователь с таким логином уже существует"};
             }
             user = await db.Users.FirstOrDefaultAsync(u => u.Email == usermodel.Email);
             if(user != null)
-            return "пользователь с таким email уже существует";
+            return new AuthResultModel{mes = "пользователь с таким email уже существует"};
 
             User newuser = new User{
                 Name = usermodel.Name,
@@ -91,14 +93,18 @@ namespace InPr.Domain.Services
                 Verified_Email = false,
                 Email = usermodel.Email
                 };
-                if(roleName =="publisher")
+                if(usermodel.role =="publisher")
                 {
-                    Role? publisher = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == roleName);
+                    Role? publisher = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == "publisher");
                     if(publisher != null)
                     newuser.RoleId = publisher.id;
                     else{
                         Role? reader = await db.Roles.FirstOrDefaultAsync((r)=> r.Name == "reader");
+                        if(reader != null){
                         newuser.RoleId = reader.id;
+                    }
+                    else
+                    return new AuthResultModel{mes = "чё за..."}; 
                     }
 
                 }
@@ -130,9 +136,10 @@ namespace InPr.Domain.Services
                     expires: DateTime.UtcNow.Add(TimeSpan.FromDays(3)),
                     signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes(appConfig["JwtToken:KEY"])), SecurityAlgorithms.HmacSha256));
                     var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
-                    return encodedJwt;
-            }
-            return "registration error";
+                    AuthResultModel tokenmodel = new AuthResultModel{Name = newuser.Name, Role = newuser.UserRole.Name,Token = encodedJwt, mes = "success"};
+                return tokenmodel;            
+                }
+            return new AuthResultModel{mes = "registration error"};
         }
         
          
@@ -143,14 +150,21 @@ namespace InPr.Domain.Services
             return user;
         }
         
-        public async Task<User?> GetUserAsync(string Name){
-            User? user = await db.Users.FirstOrDefaultAsync(u => u.Name == Name);
-            if(user != null)
-            user.Password = "";
-            return user;
+        public async Task<UserModel> GetUserAsync(string Name){
+            User? user = await db.Users.Include(u=>u.UserRole).FirstOrDefaultAsync(u => u.Name == Name);
+            if(user == null)
+            return new UserModel{id = -1};
+            UserModel usermodel = new UserModel{id = user.id, Name = user.Name, role = user.UserRole.Name, Email = user.Email, Age = user.Age};
+            return usermodel;
 
         }
-         
+        
+        public async Task<int> GetCountUsers(){
+            return await db.Users.CountAsync();
+        }
+        public async Task<int> GetCountArticles(){
+            return await db.Articles.CountAsync();
+        }
         public async Task<List<ArticleModel>> GetArticlesAsync(string Name){
             User? user = await db.Users.Include(u=>u.Articles).FirstOrDefaultAsync(u => u.Name == Name);
             if(user == null)

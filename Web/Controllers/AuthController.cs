@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using InPr.Web.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+
 using InPr.Domain.Services;
 namespace InPr.Web.Controllers;
 
@@ -14,22 +16,19 @@ namespace InPr.Web.Controllers;
         public AuthController(UserService users){
             this.users = users;
         }
+        [AllowAnonymous]
         [Route("auth/registration")]
         [HttpPost]
-        public async Task<string> Registration([Bind("Name","Password","Age","Email")]UserModel user, string Role){
+        public async Task<AuthResultModel> Registration([Bind("Name","Password","Age","Email","role")]UserModel user){
             
-            return await users.RegistationAsync(user, Role);
+            return await users.RegistationAsync(user);
 
         }
+        [AllowAnonymous]
         [Route("auth/login")]
         [HttpPost]
-        public async Task<string> Login([Bind("Name","Password")]AuthModel user){
+        public async Task<AuthResultModel> Login([Bind("Name","Password")]AuthModel user){
             
-            string JwtBearerToken = await users.LoginAsync(user);
-            if(JwtBearerToken != null)
-            return JwtBearerToken;
-            else
-            return "lmoa";
-
+            return await users.LoginAsync(user);
         }
     }

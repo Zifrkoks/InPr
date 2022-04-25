@@ -38,7 +38,7 @@ namespace InPr.Domain.Services
             Article? a = await db.Articles.Include(a=>a.user).FirstOrDefaultAsync(u => u.id == id);
             if(a == null)
             return null;
-            ArticleModel article = new ArticleModel{id = a.id, Title = a.Title, Text = a.Text, Username = a.user.Name};
+            ArticleModel article = new ArticleModel{id = a.id, Title = a.Title, Text = a.Text, Username = a.user.Name, Date = a.DateTimeCreated.ToString()};
             return article;
         }
         public async Task<List<ArticleModel>> ReadListAsync(string name){
@@ -46,18 +46,18 @@ namespace InPr.Domain.Services
             List<ArticleModel> articles = new List<ArticleModel>();
             foreach(Article a in Articles)
             {
-                ArticleModel article = new ArticleModel{id = a.id, Title = a.Title, Text = a.Text, Username = a.user.Name};
+                ArticleModel article = new ArticleModel{id = a.id, Title = a.Title, Text = a.Text, Username = a.user.Name, Date = a.DateTimeCreated.ToString()};
                 articles.Add(article);
             }
             return articles;
         }
          public async Task<List<ArticleModel>> ReadListAsync(int amount,int PageNum){
-            List<Article> Articles =  await Task.Run(()=>db.Articles.AsParallel().Skip(amount*PageNum).Take(amount).ToList());
+            List<Article> Articles =  await Task.Run(()=>db.Articles.Include(a=>a.user).AsParallel().Skip(amount*PageNum).Take(amount).ToList());
             List<ArticleModel> articles = new List<ArticleModel>();
 
             foreach(Article a in Articles)
             {
-                ArticleModel article = new ArticleModel{id = a.id, Title = a.Title, Text = a.Text, Username = a.user.Name};
+                ArticleModel article = new ArticleModel{id = a.id, Title = a.Title, Text = a.Text, Username = a.user.Name, Date = a.DateTimeCreated.ToString()};
                 articles.Add(article);
             }
             return articles;
